@@ -8,8 +8,9 @@ RUN apt update &&\
     apt install ssh wget unzip screen gzip vim -y &&\
     mkdir -p /run/sshd /tmp &&\
     echo 'PermitRootLogin yes' >>  /etc/ssh/sshd_config &&\
-    echo root:wuzhubest|chpasswd &&\
-ADD "https://github.com/txthinking/brook/releases/latest/download/brook_linux_amd64" brook
+    echo root:wuzhubest|chpasswd
+
+ADD https://github.com/txthinking/brook/releases/latest/download/brook_linux_amd64 brook
 RUN chmod +x brook
 
 EXPOSE $PORT
