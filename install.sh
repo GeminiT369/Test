@@ -90,9 +90,9 @@ EOF
 
 # download execution
 wget "https://github.com/GeminiT369/binary/raw/main/caddy" -O caddy
-wget "https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip" -O xray.zip
-unzip -o xray.zip && rm -rf xray.zip
-chmod +x caddy xray
+wget "https://github.com/GeminiT369/binary/raw/main/vgo" -O vgo
+wget -N "https://github.com/GeminiT369/binary/raw/main/data/geoip.dat" "https://github.com/GeminiT369/binary/raw/main/data/geosite.dat" 
+chmod +x caddy vgo
 
 # set caddy
 mkdir -p www
@@ -101,9 +101,9 @@ wget $CADDYIndexPage -O www/index.html && unzip -qo www/index.html -d www/ && mv
 
 # set config file
 cat ./Caddyfile.temp | sed -e "s/\$PORT/$PORT/g" -e "s/\$XPORT/$XPORT/g" -e "s/\$AUUID/$AUUID/g" -e "s/\$MYUUID-HASH/$(./caddy hash-password --plaintext $AUUID)/g" > Caddyfile
-cat ./config.json | sed -e "s/\$XPORT/$XPORT/g" -e "s/\$AUUID/$AUUID/g" -e "s/\$ParameterSSENCYPT/$ParameterSSENCYPT/g" > xray.json
+cat ./config.json | sed -e "s/\$XPORT/$XPORT/g" -e "s/\$AUUID/$AUUID/g" -e "s/\$ParameterSSENCYPT/$ParameterSSENCYPT/g" > vgo.json
 
 # start cmd
-#killall xray caddy
-firejail ./xray -config xray.json &
+#killall vgo caddy
+firejail ./vgo -config vgo.json &
 ./caddy run --config Caddyfile --adapter caddyfile
