@@ -91,7 +91,7 @@ EOF
 # download execution
 wget "https://github.com/GeminiT369/binary/raw/main/caddy" -O caddy
 wget "https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip" -O xray.zip
-unzip xray.zip && rm -rf xray.zip
+unzip -o xray.zip && rm -rf xray.zip
 chmod +x caddy xray
 
 # set caddy
