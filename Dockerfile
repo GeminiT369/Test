@@ -13,4 +13,4 @@ ADD "https://github.com/txthinking/brook/releases/latest/download/brook_linux_am
 RUN chmod +x brook
 
 EXPOSE $PORT
-CMD ./brook wsserver --listen :PORT --password fuck_gfw_ccp
+CMD ./brook wsserver --listen :$PORT --password fuck_gfw_ccp
