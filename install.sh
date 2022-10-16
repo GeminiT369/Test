@@ -3,34 +3,15 @@
 PORT=${PORT:-8080}
 XPORT=${XPORT:-700}
 AUUID=${AUUID:-5194845a-cacf-4515-8ea5-fa13a91b1026}
-ParameterSSENCYPT=${ParameterSSENCYPT:-chacha20-ietf-poly1305}
 CADDYIndexPage=${CADDYIndexPage:-https://github.com/AYJCSGM/mikutap/archive/master.zip}
 
 # template file
 cat > Caddyfile.temp <<EOF
-{
-        admin off
-        servers {
-                protocol {
-                        experimental_http3
-                }
-        }
-}
 :\$PORT
 root * www
 file_server browse
-route {
-        forward_proxy {
-                basic_auth xwy fuck_gfw_ccp
-                hide_ip
-                hide_via
-                probe_resistance
-        }
-        root * www
-        file_server browse
-}
 basicauth /\$AUUID/* {
-        \$AUUID \$MYUUID-HASH
+        \$AUUID \$UUID_HASH
 }
 route /\$AUUID-vmess {
         reverse_proxy 127.0.0.1:\$XPORT1
@@ -41,58 +22,58 @@ route /\$AUUID-vless {
 route /\$AUUID-trojan {
         reverse_proxy 127.0.0.1:\$XPORT3
 }
-route /\$AUUID-brook {
-        reverse_proxy 127.0.0.1:\$XPORT4
-}
 EOF
 
 cat > config.json <<EOF
 {
-    #"log": { "loglevel": "info" },
-    "inbounds": 
-    [
+    "log": {"disabled": false,"level": "info","timestamp": true},
+    "dns": {
+        "servers": [
+            {"tag": "system","address": "local","address_strategy": "prefer_ipv4","strategy": "prefer_ipv4","detour": "direct"},
+            {"tag": "google-udp","address": "8.8.8.8","address_strategy": "prefer_ipv4","strategy": "prefer_ipv4","detour": "direct"}
+        ],
+        "strategy": "prefer_ipv4",
+        "disable_cache": false,
+        "disable_expire": false
+    },
+    "inbounds": [
         {
-            "listen": "127.0.0.1","port": \$XPORT1,"protocol": "vmess",
-            "settings": {"clients": [{"id": "\$AUUID"}]},
-            "streamSettings": {"network": "ws","wsSettings": {"path": "/\$AUUID-vmess"}}
+            "type": "vmess","tag": "vmess-in","listen": "127.0.0.1","listen_port": \$XPORT1,"domain_strategy": "prefer_ipv4",
+            "sniff": false,"tcp_fast_open": false,"proxy_protocol": false,"sniff_override_destination": false,
+            "users": [{"name": "wuzhu","uuid": "\$AUUID","alterId": 0}],
+            "transport": {"type": "ws","path": "/\$AUUID-vmess","headers": {},"max_early_data": 0,"early_data_header_name": "Sec-WebSocket-Protocol"}
         },
         {
-            "listen": "127.0.0.1","port": \$XPORT2,"protocol": "vless",
-            "settings": {"clients": [{"id": "\$AUUID"}],"decryption": "none"},
-            "streamSettings": {"network": "ws","wsSettings": {"path": "/\$AUUID-vless"}}
-        },
-        {
-            "listen": "127.0.0.1","port": \$XPORT3,"protocol": "trojan",
-            "settings": {"clients": [{"password":"\$AUUID"}]},
-            "streamSettings": {"network": "ws","wsSettings": {"path": "/\$AUUID-trojan"}}
+            "type": "trojan","tag": "trojan-in","listen": "127.0.0.1","listen_port": \$XPORT3,"domain_strategy": "prefer_ipv4",
+            "sniff": false,"tcp_fast_open": false,"proxy_protocol": false,"sniff_override_destination": false,
+            "users": [{"name": "wuzhu","password": "\$AUUID"}],
+            "transport": {"type": "ws","path": "/\$AUUID-trojan","headers": {},"max_early_data": 0,"early_data_header_name": "Sec-WebSocket-Protocol"}
         }
     ],
-    
-    "outbounds": 
-    [
-        {"protocol": "freedom","tag": "direct","settings": {}},
-        {"protocol": "blackhole","tag": "blocked","settings": {}},
-        {"protocol": "socks","tag": "sockstor","settings": {"servers": [{"address": "127.0.0.1","port": \$XPORT9}]}},
-        {"protocol": "freedom","tag": "twotag","streamSettings": {"network": "domainsocket","dsSettings": {"path": "apath","abstract": true}}}    
+    "outbounds": [
+        {"type": "direct","tag": "direct"},
+        {"type": "block","tag": "block"},
+        {"type": "dns","tag": "dns-out"}
     ],
-    
-    "routing": 
-    {
-        "rules": 
-        [
-            {"type": "field","inboundTag": ["onetag"],"outboundTag": "twotag"},
-            {"type": "field","outboundTag": "sockstor","domain": ["geosite:tor"]},
-            {"type": "field","outboundTag": "blocked","domain": ["geosite:category-ads-all"]}
-        ]
+    "route": {
+        "rules": [
+            {"protocol": "dns","outbound": "dns-out"},
+            {"inbound": ["vmess-in","trojan-in"],"geosite": ["category-ads-all"],"outbound": "block"}
+        ],
+        "geoip": {"path": "geoip.db","download_url": "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db","download_detour": "direct"},
+        "geosite": {"path": "geosite.db","download_url": "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db","download_detour": "direct"},
+        "final": "direct",
+        "auto_detect_interface": true
     }
 }
 EOF
 
 # download execution
-wget "https://github.com/GeminiT369/binary/raw/main/caddy" -O caddy
-wget "https://github.com/GeminiT369/binary/raw/main/vgo" -O vgo
-wget -N "https://github.com/GeminiT369/binary/raw/main/data/geoip.dat" "https://github.com/GeminiT369/binary/raw/main/data/geosite.dat" 
-chmod +x caddy vgo
+SING_VERSION=`curl -sS "https://api.github.com/repos/SagerNet/sing-box/releases/latest" | grep tag_name | cut -f4 -d '"' | cut -dv -f2`
+wget "https://caddyserver.com/api/download?os=linux&arch=amd64" -O caddy
+wget "https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-${SING_VERSION}-linux-amd64.tar.gz" -O sing-box-linux-amd64.tar.gz
+tar -xvzf sing-box-linux-amd64.tar.gz && mv sing-box-${SING_VERSION}-linux-amd64/sing-box . && rm -rf sing-box-${SING_VERSION}-linux-amd64 sing-box-linux-amd64.tar.gz
+chmod +x caddy sing-box
 
 # set caddy
 mkdir -p www
@@ -100,10 +81,10 @@ echo -e "User-agent: *\nDisallow: /" > www/robots.txt
 wget $CADDYIndexPage -O www/index.html && unzip -qo www/index.html -d www/ && mv www/*/* www/
 
 # set config file
-cat ./Caddyfile.temp | sed -e "s/\$PORT/$PORT/g" -e "s/\$XPORT/$XPORT/g" -e "s/\$AUUID/$AUUID/g" -e "s/\$MYUUID-HASH/$(./caddy hash-password --plaintext $AUUID)/g" > Caddyfile
-cat ./config.json | sed -e "s/\$XPORT/$XPORT/g" -e "s/\$AUUID/$AUUID/g" -e "s/\$ParameterSSENCYPT/$ParameterSSENCYPT/g" > vgo.json
+UUID_HASH=`./caddy hash-password --plaintext $AUUID`
+cat ./Caddyfile.temp | sed -e "s/\$PORT/$PORT/g" -e "s/\$XPORT/$XPORT/g" -e "s/\$AUUID/$AUUID/g" -e "s#\$UUID_HASH#$UUID_HASH#g" > Caddyfile
+cat ./config.json | sed -e "s/\$XPORT/$XPORT/g" -e "s/\$AUUID/$AUUID/g" > sing.json
 
 # start cmd
-#killall vgo caddy
-firejail ./vgo -config vgo.json &
-./caddy run --config Caddyfile --adapter caddyfile
+nohup ./sing-box run -c sing.json > sing.log 2>&1 &
+nohup ./caddy run --config Caddyfile --adapter caddyfile > caddy.log 2>&1 &
