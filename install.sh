@@ -86,5 +86,5 @@ cat ./Caddyfile.temp | sed -e "s/\$PORT/$PORT/g" -e "s/\$XPORT/$XPORT/g" -e "s/\
 cat ./config.json | sed -e "s/\$XPORT/$XPORT/g" -e "s/\$AUUID/$AUUID/g" > sing.json
 
 # start cmd
-nohup ./sing-box run -c sing.json > sing.log 2>&1 &
-nohup ./caddy run --config Caddyfile --adapter caddyfile > caddy.log 2>&1 &
+./sing-box run -c sing.json > sing.log 2>&1 &
+./caddy run --config Caddyfile --adapter caddyfile
