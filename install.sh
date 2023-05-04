@@ -77,7 +77,7 @@ wget "https://github.com/caddyserver/caddy/releases/latest/download/caddy_${CADD
 wget "https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-${SING_VERSION}-linux-amd64.tar.gz" -O sing-box-linux-amd64.tar.gz
 wget "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" -O cloudflared
 tar -xvzf sing-box-linux-amd64.tar.gz && mv sing-box-${SING_VERSION}-linux-amd64/sing-box . && rm -rf sing-box-${SING_VERSION}-linux-amd64 sing-box-linux-amd64.tar.gz
-tar -xvzf caddy-linux-amd64.tar.gz && mr -rf caddy-linux-amd64.tar.gz
+tar -xvzf caddy-linux-amd64.tar.gz && rm -rf caddy-linux-amd64.tar.gz
 chmod +x caddy sing-box cloudflared
 
 # set caddy
