@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # set val
 PORT=${PORT:-8080}
