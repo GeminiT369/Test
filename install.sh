@@ -74,8 +74,8 @@ SING_VERSION=$(curl -sS "https://api.github.com/repos/SagerNet/sing-box/releases
 CADDY_VERSION=$(curl -sS "https://api.github.com/repos/caddyserver/caddy/releases/latest" | grep tag_name | cut -f4 -d '"' | cut -dv -f2)
 SING_VERSION=${SING_VERSION:-1.2.6}
 CADDY_VERSION=${CADDY_VERSION:-2.6.4}
-wget -q "https://github.com/caddyserver/caddy/releases/latest/download/caddy_${CADDY_VERSION}_linux_amd64.tar.gz" -O caddy-linux-amd64.tar.gz
-wget -q "https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-${SING_VERSION}-linux-amd64.tar.gz" -O sing-box-linux-amd64.tar.gz
+wget -q "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_amd64.tar.gz" -O caddy-linux-amd64.tar.gz
+wget -q "https://github.com/SagerNet/sing-box/releases/download/v${SING_VERSION}/sing-box-${SING_VERSION}-linux-amd64.tar.gz" -O sing-box-linux-amd64.tar.gz
 wget -q "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" -O cloudflared
 tar -xvzf sing-box-linux-amd64.tar.gz && mv sing-box-${SING_VERSION}-linux-amd64/sing-box . && rm -rf sing-box-${SING_VERSION}-linux-amd64 sing-box-linux-amd64.tar.gz
 tar -xvzf caddy-linux-amd64.tar.gz
