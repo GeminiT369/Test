@@ -1,9 +1,8 @@
-FROM ubuntu:latest
+FROM alpine:latest
 
-ENV LANG="C.UTF-8" \
-	PORT=8080
-	
-RUN apt-get update && apt-get install -y wget curl unzip tar
+ENV PORT=8080
+
+RUN apk update && apk add --no-cache wget curl unzip tar
 
 ADD install.sh .
 
