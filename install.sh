@@ -113,7 +113,8 @@ while true; do
   else
     rm -rf argo.log
     echo "Argo Tunnel Address: " $argo
-    echo $argo >www/argo.html
+    echo "cdn.anycast.eu.org" >www/argo.html
+    echo $argo >>www/argo.html
     break
   fi
 done
