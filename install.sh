@@ -70,17 +70,18 @@ cat >config.json <<EOF
 EOF
 
 # download execution
+rm -rf caddy sing-box cloudflared
 SING_VERSION=$(curl -sS "https://api.github.com/repos/SagerNet/sing-box/releases/latest" | grep tag_name | cut -f4 -d '"' | cut -dv -f2)
 CADDY_VERSION=$(curl -sS "https://api.github.com/repos/caddyserver/caddy/releases/latest" | grep tag_name | cut -f4 -d '"' | cut -dv -f2)
 wget "https://github.com/caddyserver/caddy/releases/latest/download/caddy_${CADDY_VERSION}_linux_amd64.tar.gz" -O caddy-linux-amd64.tar.gz
 wget "https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-${SING_VERSION}-linux-amd64.tar.gz" -O sing-box-linux-amd64.tar.gz
 wget "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" -O cloudflared
 tar -xvzf sing-box-linux-amd64.tar.gz && mv sing-box-${SING_VERSION}-linux-amd64/sing-box . && rm -rf sing-box-${SING_VERSION}-linux-amd64 sing-box-linux-amd64.tar.gz
-tar -xvzf caddy-linux-amd64.tar.gz
+tar -xvzf caddy-linux-amd64.tar.gz && mr -rf caddy-linux-amd64.tar.gz
 chmod +x caddy sing-box cloudflared
 
 # set caddy
-mkdir -p www
+rm -rf www && mkdir -p www
 echo -e "User-agent: *\nDisallow: /" >www/robots.txt
 wget $CADDYIndexPage -O www/index.html && unzip -qo www/index.html -d www/ && mv www/*/* www/
 
@@ -88,6 +89,7 @@ wget $CADDYIndexPage -O www/index.html && unzip -qo www/index.html -d www/ && mv
 UUID_HASH=$(./caddy hash-password --plaintext $AUUID)
 cat ./Caddyfile.temp | sed -e "s/\$PORT/$PORT/g" -e "s/\$XPORT/$XPORT/g" -e "s/\$AUUID/$AUUID/g" -e "s#\$UUID_HASH#$UUID_HASH#g" >Caddyfile
 cat ./config.json | sed -e "s/\$XPORT/$XPORT/g" -e "s/\$AUUID/$AUUID/g" >sing.json
+rm -rf Caddyfile.temp config.json
 
 # start cmd
 
@@ -96,7 +98,6 @@ sleep 1
 n=0
 while true; do
   n=$(($n + 1))
-  clear
   echo 等待cloudflare argo生成地址 已等待 $n 秒
   argo=$(cat argo.log | grep trycloudflare.com | awk 'NR==2{print}' | awk -F// '{print $2}' | awk '{print $1}')
   if [ $n == 15 ]; then
@@ -104,7 +105,6 @@ while true; do
     pid=$(ps -ef | grep cloudflared | grep -v grep | awk '{print $2}')
     kill -9 $pid >/dev/null 2>&1
     rm -rf argo.log
-    clear
     echo argo获取超时,重试中
     ./cloudflared tunnel --url http://localhost:$PORT --no-autoupdate --edge-ip-version 4 --protocol http2 >argo.log 2>&1 &
     sleep 1
@@ -117,7 +117,6 @@ while true; do
     break
   fi
 done
-clear
 
 ./sing-box run -c sing.json >sing.log 2>&1 &
 ./caddy run --config Caddyfile --adapter caddyfile
