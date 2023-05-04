@@ -7,4 +7,4 @@ RUN apk update && apk add --no-cache wget curl unzip tar
 ADD install.sh .
 
 EXPOSE $PORT
-CMD bash install.sh
+CMD ["sh", "install.sh"]
